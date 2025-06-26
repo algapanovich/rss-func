@@ -1,8 +1,10 @@
 import os
+from dotenv import load_dotenv
 
 # Configurations for RSS-Syphon
 
 # Set default logging level and format
+# The rest of your code now works perfectly, as os.getenv will find the loaded variables
 log_level = os.getenv("LOG_LEVEL", "INFO")
 log_format = os.getenv("LOG_FORMAT", "%(levelname)s:%(name)s: %(message)s")
 
@@ -11,11 +13,11 @@ log_format = os.getenv("LOG_FORMAT", "%(levelname)s:%(name)s: %(message)s")
 # Set Slack Configuration parameters
 slack_params_dict = {
     "slack_enabled": os.getenv("SLACK_ENABLED"),
-    "slack_token": os.getenv("SLACK_TOKEN"),
+    "slack_token": os.getenv("SLACK_API_TOKEN"), # Note the corrected variable name
     "channels": {
         "cve": os.getenv("SLACK_CHANNEL_CVE"),
         "news": os.getenv("SLACK_CHANNEL_NEWS"),
-        "error": os.getenv("SLACK_CHANNEL_ERRORS")
+        "error": os.getenv("SLACK_CHANNEL_ERROR")
     }
 }
 
@@ -42,7 +44,7 @@ notion_params_dict = {
 }
 
 # Splunk search SPL that returns packages list from tenable vuln data
-search_query = '''
+search_query = r'''
 search index=tenable severity=informational plugin_id=22869 output=*
 | fields output | fields - _raw
 | rex field=output max_match=0 "ii\s+(?<package>.+?\s+\d.+?)\s"

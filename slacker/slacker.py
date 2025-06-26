@@ -3,6 +3,9 @@ import re
 from bs4 import BeautifulSoup
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+import json
+import time # <--- 1. IMPORT ADDED HERE
+
 
 # Requires adding slack_sdk to the requirements.txt file
 # Requires adding bs4 to the requirements.txt file
@@ -28,15 +31,9 @@ def read_channel(client, channel_id, rss_type):
 
     This requires the following scopes:
       channels:history
-        View messages and other content in public channels that syphon has been added to
       groups:history
-        View messages and other content in private channels that syphon has been added to
       im:history
-        View messages and other content in direct messages that syphon has been added to
-      incoming-webhook
-        Post messages to specific channels in Slack
       mpim:history
-        View messages and other content in group direct messages that syphon has been added to
 
     :param client: Slack Client Object
     :param channel_id: Slack Channel ID
@@ -52,9 +49,6 @@ def read_channel(client, channel_id, rss_type):
     }
 
     try:
-        # Call the conversations.history method using the WebClient
-        # The conversations.history returns 99 messages by default
-        # Results are paginated, see: https://api.slack.com/method/conversations.history$pagination
         # TODO handle paginating multiple pages
         result = client.conversations_history(channel=channel_id)
         conversation_history = result["messages"]
@@ -102,7 +96,7 @@ def read_channel(client, channel_id, rss_type):
         }
 
     except SlackApiError as e:
-        msg = f"Error creating conversation: {e}"
+        msg = f"Error reading channel history: {e}"
         logger.error(msg)
 
     return re_dict
@@ -118,7 +112,6 @@ def post_message(client, channel_id, messages):
     :param channel_id: Slack Channel ID
     :param messages: Message body content
     """
-    # messages = message_body.split('\n\n\n\n')
     for message in messages.split('\n---EOM---'):
         if message:
             try:
@@ -131,6 +124,7 @@ def post_message(client, channel_id, messages):
                     parse="mrkdwn"
                 )
                 logger.info(result)
+                time.sleep(1) # <-- 2. ADD 1-SECOND PAUSE TO RESPECT RATE LIMITS
             except SlackApiError as e:
                 msg = f"Error posting message: {e}"
                 logger.error(msg)
@@ -144,6 +138,8 @@ def clean_html(input_text):
     :param input_text: Text to clean
     :return: Cleaned output
     """
+    if not input_text:
+        return ""
     text = BeautifulSoup(input_text, "lxml").get_text(separator="\n")
     return re.sub('\n\n', '\n', text)
 
@@ -159,73 +155,60 @@ def build_results_message(feed_results, rss_found_already, rss_type):
     """
     res = ""
 
-    if feed_results["articles"]:
+    if feed_results.get("articles"):
         for rss_post in feed_results["articles"]:
+            # Skip if we've already posted this based on MD5 or link
             if rss_post['md5'] in rss_found_already['md5s']:
                 continue
             elif rss_post['link'] in rss_found_already['links']:
                 continue
-            elif rss_post['md5'] not in res:
-                post_title = rss_post["title"].lower()
-                post_summary = rss_post["summary"].lower()
+            
+            post_title = rss_post.get("title", "No Title")
+            post_summary = rss_post.get("summary", "")
+            post_title_lower = post_title.lower()
+            post_summary_lower = post_summary.lower()
 
-                # Publishing News
-                if rss_type == "news":
-                    if not any(x in post_title for x in ["cve", "vulnerability"]):
-                        res += f"\n{rss_post['title']}\n"
-                        res += f" • link: {rss_post['link']}\n"
-                        res += f" • md5: {rss_post['md5']}\n"
-                        res += f" • keyword(s): {rss_post['keywords']}\n"
-                        res += f" • feed: {rss_post['rss_feed_name']}\n"
-                        res += f"---EOM---"
+            # Publishing News
+            if rss_type == "news":
+                if "cve" not in post_title_lower and "vulnerability" not in post_title_lower:
+                    res += f"\n{post_title}\n"
+                    res += f" • link: {rss_post['link']}\n"
+                    res += f" • md5: {rss_post['md5']}\n"
+                    res += f" • keyword(s): {rss_post.get('keywords', [])}\n"
+                    res += f" • feed: {rss_post.get('rss_feed_name', 'N/A')}\n"
+                    res += f"---EOM---"
 
-                # Publishing CVEs
-                elif rss_type == "cve":
-                    if ("cve" in post_title) or ("cve" in post_summary):
-                        # Parse for CVEs
-                        cve_list = []
-                        cve_url_list = []
+            # Publishing CVEs
+            elif rss_type == "cve":
+                if "cve" in post_title_lower or "cve" in post_summary_lower:
+                    cve_list = []
+                    cve_url_list = []
+                    cve_regex = r"(CVE-20[0-9]{2}-\d+)"
 
-                        cve_regex = r"(CVE-20[0-9]{2}-\d+)"
-                        cve_title_results = re.findall(cve_regex, str(rss_post['title']), re.IGNORECASE)
-                        cve_summary_results = re.findall(cve_regex, str(rss_post['summary']), re.IGNORECASE)
+                    # Find all unique CVEs in title and summary
+                    found_cves = set(re.findall(cve_regex, f"{post_title} {post_summary}", re.IGNORECASE))
 
-                        # Check CVE lists and dedup results and readies for results
-                        for title_result in cve_title_results:
-                            if title_result not in cve_list:
-                                cve_list.append(title_result)
-                                title_result_addon = ""
-                                if title_result in rss_found_already["fixed_cves"]:
-                                    title_result_addon += ":already_fixed:"
-                                elif title_result in rss_found_already["seen_cves"]:
-                                    title_result_addon += ":already_seen:"
-                                cve_url_list.append(
-                                    f"<https://cve.mitre.org/cgi-bin/cvename.cgi?name={title_result}|{title_result} {title_result_addon}>")
+                    for cve_id in sorted(list(found_cves)):
+                        addon = ""
+                        if cve_id in rss_found_already["fixed_cves"]:
+                            addon += ":already_fixed:"
+                        elif cve_id in rss_found_already["seen_cves"]:
+                            addon += ":already_seen:"
+                        cve_url_list.append(
+                            f"<https://cve.mitre.org/cgi-bin/cvename.cgi?name={cve_id}|{cve_id} {addon}>")
 
-                        for summary_result in cve_summary_results:
-                            if summary_result not in cve_list:
-                                cve_list.append(summary_result)
-                                summary_result_addon = ""
-                                if summary_result in rss_found_already["fixed_cves"]:
-                                    summary_result_addon += ":already_fixed:"
-                                elif summary_result in rss_found_already["seen_cves"]:
-                                    summary_result_addon += ":already_seen:"
-                                cve_url_list.append(
-                                    f"<https://cve.mitre.org/cgi-bin/cvename.cgi?name={summary_result}|{summary_result} {summary_result_addon}>")
+                    cve_links = ", ".join(cve_url_list)
 
-                        # Backslashes not allowed in f-string
-                        cve_url_list = str(cve_url_list).strip("[]").replace("\'", "")
-
-                        res += f"\n{rss_post['title']}\n"
-                        if rss_post['summary']:
-                            res += f" • summary: {clean_html(str(rss_post['summary']))}\n"
-                        if cve_url_list:
-                            res += f"\n • cve(s): {cve_url_list}\n"
-                        res += f" • link: {rss_post['link']}\n"
-                        res += f" • md5: {rss_post['md5']}\n"
-                        res += f" • keyword(s): {rss_post['keywords']}\n"
-                        res += f" • feed: {rss_post['rss_feed_name']}\n"
-                        res += f"---EOM---"
+                    res += f"\n{post_title}\n"
+                    if post_summary:
+                        res += f" • summary: {clean_html(post_summary)}\n"
+                    if cve_links:
+                        res += f"\n • cve(s): {cve_links}\n"
+                    res += f" • link: {rss_post['link']}\n"
+                    res += f" • md5: {rss_post['md5']}\n"
+                    res += f" • keyword(s): {rss_post.get('keywords', [])}\n"
+                    res += f" • feed: {rss_post.get('rss_feed_name', 'N/A')}\n"
+                    res += f"---EOM---"
 
     return res
 
@@ -240,42 +223,49 @@ def send_message(job_type, message_params, matched, errors, check_stale_keywords
     :param errors: List of feeds that have an error
     :param check_stale_keywords: None or date
     """
-    # Check if module is enabled and bail out if not
-    if str(message_params["slack_enabled"]).lower() == "false":
-        logger.debug("Debug: Slack not enabled.")
-        return None
+    if str(message_params.get("slack_enabled")).lower() != "true":
+        logger.info("Slack is not enabled in the configuration.")
+        return
 
-    slack_token = message_params["slack_token"]
-    slack_channel = message_params["channels"]
+    slack_token = message_params.get("slack_token")
+    if not slack_token:
+        logger.warning(f"Warning: No Slack token set. No {job_type} items will be posted to Slack.")
+        return
 
-    # Check if slack_token is set
-    if slack_token:
-        # Init Slack Client
+    try:
         slack_client = init_slack_client(slack_token)
+        channel_id = message_params.get("channels", {}).get(job_type)
+        error_channel_id = message_params.get("channels", {}).get("error")
 
-        # Pull RSS that was found already in channel
-        rss_found = read_channel(slack_client, slack_channel[job_type], job_type)
+        if not channel_id:
+            logger.error(f"No Slack channel ID found for job type '{job_type}' in configuration.")
+            return
 
-        # Build the message that will be sent
+        # --- Post matched articles ---
+        rss_found = read_channel(slack_client, channel_id, job_type)
         message_body = build_results_message(matched, rss_found, job_type)
+        logger.info(f"For job '{job_type}', built message body: '{message_body[:200]}...'")
         if message_body:
-            post_message(slack_client, slack_channel[job_type], message_body)
+            post_message(slack_client, channel_id, message_body)
 
-        # Feeds that have changes or are offline
+        # --- Post errors and warnings to the error channel ---
+        if not error_channel_id:
+            logger.warning("No error channel configured for posting feed errors or stale keyword warnings.")
+            return
+            
         error_message_body = ""
-        if len(errors) > 0:
-            error_message_body += f"The following feeds are no longer publishing articles:\n"
-            for feed in errors:
-                error_message_body += f"{str(feed)}\n"
-            error_message_body += f"\n"
+        if errors:
+            error_message_body += "The following feeds encountered errors or are offline:\n"
+            error_message_body += "\n".join([f"• {feed}" for feed in errors])
+            error_message_body += "\n"
 
-        # Keywords need to be updated
-        if check_stale_keywords is not None:
-            error_message_body += f"Keyword list was last updated on: {str(check_stale_keywords)}\n"
-            error_message_body += f"Keyword list is over 90 days old and needs to be updated.\n\n"
+        if check_stale_keywords:
+            error_message_body += f"\nKeyword list was last updated on: {str(check_stale_keywords)}\n"
+            error_message_body += "It is over 90 days old and should be reviewed.\n"
 
         if error_message_body:
-            post_message(slack_client, slack_channel["error"], error_message_body)
-    else:
-        msg = f"Warning: No Slack token set. No {job_type} items will be posted to Slack."
-        logger.warning(msg)
+            # Post a single summary message for all errors
+            post_message(slack_client, error_channel_id, error_message_body)
+
+    except Exception as e:
+        logger.error(f"An unexpected error occurred in send_message: {e}")
