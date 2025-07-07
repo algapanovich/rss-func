@@ -4,12 +4,8 @@ from bs4 import BeautifulSoup
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 import json
-import time # <--- 1. IMPORT ADDED HERE
+import time 
 
-
-# Requires adding slack_sdk to the requirements.txt file
-# Requires adding bs4 to the requirements.txt file
-# Requires adding lxml to the requirements.txt file
 
 # Set module logger name
 logger = logging.getLogger(__name__)
@@ -124,7 +120,7 @@ def post_message(client, channel_id, messages):
                     parse="mrkdwn"
                 )
                 logger.info(result)
-                time.sleep(1) # <-- 2. ADD 1-SECOND PAUSE TO RESPECT RATE LIMITS
+                time.sleep(1) 
             except SlackApiError as e:
                 msg = f"Error posting message: {e}"
                 logger.error(msg)
