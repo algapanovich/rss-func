@@ -12,3 +12,4 @@ yarl==1.18.3
 beautifulsoup4
 lxml
 slack_sdk
+python-dotenv

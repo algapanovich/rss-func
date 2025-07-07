@@ -1,0 +1,24 @@
+# Git and VS Code
+.git
+.gitignore
+.vscode/
+
+# Docker-related files - prevents them from being copied into the image
+Dockerfile
+.dockerignore
+
+# Python virtual environment folder (e.g., venv/ or .venv/)
+venv/
+.venv/
+
+# Byte-compiled / optimized / DLL files (from your template)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables and logs
+.env
+*.log
+
+# macOS system files
+.DS_Store

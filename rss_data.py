@@ -360,7 +360,6 @@ keywords = {
         "hiring"
     ],
     "static_keywords": [
-        "verily",
         "agi",
         "ai",
         "amazon",
@@ -381,7 +380,6 @@ keywords = {
         "gcp",
         "gdpr",
         "gemini",
-        "git",
         "github",
         "globalprotect",
         "google cloud",
