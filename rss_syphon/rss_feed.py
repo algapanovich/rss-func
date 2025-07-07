@@ -1,19 +1,11 @@
-# --- Start of rss_syphon/rss_feed.py ---
 
-# == CORRECT ORDER OF OPERATIONS ==
-# 1. Load variables from .env file FIRST
 from dotenv import load_dotenv
 load_dotenv()
-
-# 2. THEN, import modules that USE those variables
 from rss_config import slack_params_dict
 from slacker.slacker import send_message
-# Import the data lists from your central data file
 from rss_data import rss_feed_list, keywords as keywords_data
-# == END OF CRITICAL SECTION ==
 
 
-# Now, all your other regular imports
 import logging
 import re
 import feedparser
@@ -23,10 +15,7 @@ import aiohttp
 from aiohttp import ClientConnectorError, ClientError
 from time import mktime
 from datetime import datetime
-# =============================
 
-
-# Set module logger name
 logger = logging.getLogger(__name__)
 
 
@@ -87,12 +76,11 @@ def fetch_feed_results(feeds_list):
 def process_feeds(feed_results, feeds_list):
     """
     Clean up data being passed back to the calling
-    function and handle any exceptions that were thrown. This version is
-    more robust at handling different error types from the fetch process.
+    function and handle any exceptions that were thrown.
     """
     processed_results = []
     for result in feed_results:
-        # Case 1: An exception was caught by asyncio.gather (e.g., timeout, connection error)
+        # Case 1: An exception was caught by asyncio.gather (timeout, connection error)
         if isinstance(result, Exception):
             logger.error(f"An exception occurred during the fetch process: {result}")
             continue
@@ -104,11 +92,10 @@ def process_feeds(feed_results, feeds_list):
 
         feed_data, feed_name = result
 
-        # --- THE FINAL FIX IS HERE ---
-        # Case 2: Check if the fetched data is ANY string. Since successful fetches
+         # Case 2: Check if the fetched data is ANY string. Since successful fetches
         # return a feedparser object, any string indicates an error message.
         if isinstance(feed_data, str):
-            # This is an error we caught. We package it so the next function knows the feed failed.
+           
             error_entry = {"entries": None, "message": {"feed_name": feed_name, "error": feed_data}}
             processed_results.append((error_entry, feed_name))
         
