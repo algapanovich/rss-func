@@ -408,7 +408,6 @@ keywords = {
         "macos",
         "malware",
         "mfa",
-        "microsoft",
         "nist",
         "oauth",
         "okta",
