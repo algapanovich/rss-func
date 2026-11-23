@@ -33,8 +33,8 @@ Install dependencies via pip install -r requirements.txt
 Configure your .env file with credentials and API keys for Slack, Notion, Zendesk, Splunk, etc.
 Customize rss_data.py to adjust keywords, RSS feed lists, and other config options
 Configuration
-RSS Feeds: Edit rss_data.py to add or modify RSS feed URLs and names under rss_feed_list. Feeds are organized by job types, e.g., "news" or "cve".
-Keywords: Configure keywords in rss_data.py for both static and dynamic use.
+RSS Feeds: Edit feeds.py (shared by all deployments) to add or modify RSS feed URLs and names under rss_feed_list. Feeds are organized by job types, e.g., "news" or "cve".
+Keywords: each deployment has its own module (rss_data.py for the team, rss_data_vsa.py for privacy), selected with SYPHON_CONFIG_MODULE.
 Outputs: Update rss_config.py with parameters for Slack, Notion, and Zendesk API connections.
 Usage
 Run daily to fetch and process RSS feeds:
@@ -64,3 +64,11 @@ Dedup state (seen articles, per-feed ETag/Last-Modified) is stored per deploymen
 State only advances after Slack accepts the posts, and the process exits non-zero on failure
 so Cloud Run marks the execution failed.
 Tests: pip install pytest && python -m pytest tests
+
+CVE enrichment and alerts
+CVE posts are enriched with CVSS (NVD), exploited-in-the-wild status (CISA KEV) and EPSS.
+High/Critical CVSS or a KEV listing posts with a rotating-light headline and a red Slack attachment.
+  NVD_API_KEY       optional, raises the NVD rate limit (recommended)
+  NVD_MAX_LOOKUPS   uncached NVD lookups per run (default 25); results are cached in state
+  ENRICH_ENABLED    set to false to turn enrichment off
+All sources fail soft: the article is posted without the missing field.
