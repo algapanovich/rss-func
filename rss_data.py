@@ -73,7 +73,8 @@ keywords = {
         "macos",
         "macbook",
         "ios",
-        "jamf",
+        "iru",
+        "kandji",  # Iru was formerly Kandji; older articles still use the name
         "mdm",
         # --- Industry ---
         "healthcare",

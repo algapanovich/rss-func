@@ -497,8 +497,8 @@ rss_feed_list = {
         "url": "https://github.blog/security/feed/"
     },
     {
-        "name": "Jamf Blog",
-        "url": "https://www.jamf.com/blog/rss/"
+        "name": "Iru Blog",
+        "url": "https://www.iru.com/blog/rss.xml"
     },
 ]
 }
