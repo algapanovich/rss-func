@@ -60,6 +60,10 @@ keywords = {
         "docusign",
         "lucidchart",
         "gemini",
+        "claude code",
+        "anthropic",
+        "openai",
+        "chatgpt",
         # --- Our stack: network and endpoint ---
         "palo alto",
         "pan-os",
