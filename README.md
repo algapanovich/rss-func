@@ -17,7 +17,7 @@ Robust error handling and logging
 Modular outputs expansion supported
 Requirements
 Python 3.10+
-Dependencies (install via pip install -r src/requirements.txt):
+Dependencies (install via pip install -r requirements.txt):
 aiohttp
 feedparser
 beautifulsoup4
@@ -29,9 +29,9 @@ Optional: Splunk access for dynamic keyword fetching
 Setup
 Clone the repository
 Create and activate a Python virtual environment
-Install dependencies via pip install -r src/requirements.txt
+Install dependencies via pip install -r requirements.txt
 Configure your .env file with credentials and API keys for Slack, Notion, Zendesk, Splunk, etc.
-Customize src/rss_data.py to adjust keywords, RSS feed lists, and other config options
+Customize rss_data.py to adjust keywords, RSS feed lists, and other config options
 Configuration
 RSS Feeds: Edit rss_data.py to add or modify RSS feed URLs and names under rss_feed_list. Feeds are organized by job types, e.g., "news" or "cve".
 Keywords: Configure keywords in rss_data.py for both static and dynamic use.
@@ -39,16 +39,28 @@ Outputs: Update rss_config.py with parameters for Slack, Notion, and Zendesk API
 Usage
 Run daily to fetch and process RSS feeds:
 
-python src/rss_syphon.py
+python -m rss_syphon.rss_feed
 You can also run inside Docker, passing your environment variables via an .env file:
 
   docker build -t rss-syphon .  
   docker run --env-file .env rss-syphon
 Extending
-Add or remove RSS feeds in rss_feed_list inside src/rss_data.py
-Modify keyword lists in src/rss_data.py
+Add or remove RSS feeds in rss_feed_list inside rss_data.py
+Modify keyword lists in rss_data.py
 Add new output modules by following the existing pattern in the src/ folder
 Notes
 Ensure network connectivity to RSS feed URLs
 Use valid API keys and tokens for outputs
 Lookback days parameter allows processing older articles when needed
+
+State and deployments
+Dedup state (seen articles, per-feed ETag/Last-Modified) is stored per deployment and job type.
+  SYPHON_CONFIG_MODULE  data module with feeds and keywords (default rss_data)
+  SYPHON_DEPLOYMENT     state namespace (default: the config module name), keep unique per deployment
+  STATE_BACKEND         firestore (default), file, or memory
+  STATE_COLLECTION      Firestore collection (default rss_syphon_state)
+  LOOKBACK_HOURS        rolling window of article age to consider (default 36)
+  SEEN_TTL_DAYS         how long seen articles are remembered (default 30)
+State only advances after Slack accepts the posts, and the process exits non-zero on failure
+so Cloud Run marks the execution failed.
+Tests: pip install pytest && python -m pytest tests

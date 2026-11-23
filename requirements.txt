@@ -13,3 +13,4 @@ beautifulsoup4
 lxml
 slack_sdk
 python-dotenv
+google-cloud-firestore

@@ -18,4 +18,4 @@ COPY . .
 # Step 6: Define the command to run your script
 # This now directly calls your Python script.
 # NOTE: Assuming rss_feed.py is the main script to run. Adjust if necessary.
-CMD ["python", "rss_syphon/rss_feed.py"]
+CMD ["python", "-m", "rss_syphon.rss_feed"]

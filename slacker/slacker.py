@@ -10,6 +10,8 @@ import time
 # Set module logger name
 logger = logging.getLogger(__name__)
 
+MAX_HISTORY_PAGES = 5
+
 
 def init_slack_client(slack_token):
     """
@@ -45,9 +47,15 @@ def read_channel(client, channel_id, rss_type):
     }
 
     try:
-        # TODO handle paginating multiple pages
-        result = client.conversations_history(channel=channel_id)
-        conversation_history = result["messages"]
+        # Page through history (state store is the primary dedup, this is a safety net)
+        conversation_history = []
+        cursor = None
+        for _ in range(MAX_HISTORY_PAGES):
+            result = client.conversations_history(channel=channel_id, limit=200, cursor=cursor)
+            conversation_history.extend(result["messages"])
+            cursor = (result.get("response_metadata") or {}).get("next_cursor")
+            if not cursor:
+                break
 
         # Initialize dict and lists for storing links/md5s
         re_link = []
@@ -107,9 +115,11 @@ def post_message(client, channel_id, messages):
     :param client: Slack Client Object
     :param channel_id: Slack Channel ID
     :param messages: Message body content
+    :return: True if every message was posted
     """
-    for message in messages.split('\n---EOM---'):
-        if message:
+    all_ok = True
+    for message in messages.split('---EOM---'):
+        if message.strip():
             try:
                 # Call the chat.postMessage method using the WebClient
                 result = client.chat_postMessage(
@@ -119,11 +129,12 @@ def post_message(client, channel_id, messages):
                     unfurl_media=False,
                     parse="mrkdwn"
                 )
-                logger.info(result)
-                time.sleep(1) 
+                logger.debug(result)
+                time.sleep(1)
             except SlackApiError as e:
-                msg = f"Error posting message: {e}"
-                logger.error(msg)
+                all_ok = False
+                logger.error(f"Error posting message: {e}")
+    return all_ok
 
 
 def clean_html(input_text):
@@ -184,12 +195,19 @@ def build_results_message(feed_results, rss_found_already, rss_type):
                     # Find all unique CVEs in title and summary
                     found_cves = set(re.findall(cve_regex, f"{post_title} {post_summary}", re.IGNORECASE))
 
+                    # If CVEs were found in this article, check if all of them have already been seen.
+                    # If so, skip this article entirely.
+                    if found_cves and found_cves.issubset(set(rss_found_already['seen_cves'])):
+                        continue
+                    
                     for cve_id in sorted(list(found_cves)):
                         addon = ""
                         if cve_id in rss_found_already["fixed_cves"]:
-                            addon += ":already_fixed:"
+                            addon += ":white_check_mark:"
                         elif cve_id in rss_found_already["seen_cves"]:
-                            addon += ":already_seen:"
+                            addon += ":eyes:" # Using :eyes: as a more standard "seen" emoji
+                        
+                        # Append the formatted CVE link to the list
                         cve_url_list.append(
                             f"<https://cve.mitre.org/cgi-bin/cvename.cgi?name={cve_id}|{cve_id} {addon}>")
 
@@ -218,15 +236,17 @@ def send_message(job_type, message_params, matched, errors, check_stale_keywords
     :param matched: Keyword matched RSS articles
     :param errors: List of feeds that have an error
     :param check_stale_keywords: None or date
+    :return: True if all article posts succeeded (or there were none), False on
+             failure, None if Slack is disabled or unconfigured (nothing was posted)
     """
     if str(message_params.get("slack_enabled")).lower() != "true":
         logger.info("Slack is not enabled in the configuration.")
-        return
+        return None
 
     slack_token = message_params.get("slack_token")
     if not slack_token:
         logger.warning(f"Warning: No Slack token set. No {job_type} items will be posted to Slack.")
-        return
+        return None
 
     try:
         slack_client = init_slack_client(slack_token)
@@ -235,19 +255,20 @@ def send_message(job_type, message_params, matched, errors, check_stale_keywords
 
         if not channel_id:
             logger.error(f"No Slack channel ID found for job type '{job_type}' in configuration.")
-            return
+            return False
 
         # --- Post matched articles ---
         rss_found = read_channel(slack_client, channel_id, job_type)
         message_body = build_results_message(matched, rss_found, job_type)
         logger.info(f"For job '{job_type}', built message body: '{message_body[:200]}...'")
+        posted_ok = True
         if message_body:
-            post_message(slack_client, channel_id, message_body)
+            posted_ok = post_message(slack_client, channel_id, message_body)
 
         # --- Post errors and warnings to the error channel ---
         if not error_channel_id:
             logger.warning("No error channel configured for posting feed errors or stale keyword warnings.")
-            return
+            return posted_ok
             
         error_message_body = ""
         if errors:
@@ -263,5 +284,8 @@ def send_message(job_type, message_params, matched, errors, check_stale_keywords
             # Post a single summary message for all errors
             post_message(slack_client, error_channel_id, error_message_body)
 
+        return posted_ok
+
     except Exception as e:
         logger.error(f"An unexpected error occurred in send_message: {e}")
+        return False

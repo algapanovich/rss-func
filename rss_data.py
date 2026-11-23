@@ -19,7 +19,6 @@ rss_feed_list = {
     {"name": "the-hacker-news", "url": "https://feeds.feedburner.com/TheHackersNews"},
     {"name": "bleeping-computer", "url": "https://www.bleepingcomputer.com/feed/"},
     {"name": "wired-security", "url": "https://www.wired.com/feed/category/security/latest/rss"},
-    {"name": "zdnet-security", "url": "https://www.zdnet.com/topic/security/rss.xml"},
     {"name": "threatpost", "url": "https://threatpost.com/feed/"},
     {"name": "krebs-on-security", "url": "https://krebsonsecurity.com/feed/"},
     {"name": "schneier-on-security", "url": "https://www.schneier.com/feed/"},
@@ -35,43 +34,21 @@ rss_feed_list = {
     
     ],
     "cve": [
-    {"name": "nist-upcoming", "url": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml"},
-    {"name": "zdi-upcoming", "url": "https://www.zerodayinitiative.com/rss/upcoming/"},
-    {"name": "zdi-analyzed", "url": "https://www.zerodayinitiative.com/rss/published/"},
-    {"name": "vulners", "url": "https://vulners.com/rss.xml"},
-    {"name": "seclists-bugtraq", "url": "https://seclists.org/rss/bugtraq.rss"},
-    {"name": "seclists-full", "url": "https://seclists.org/rss/fulldisclosure.rss"},
-    {"name": "seclists-oss", "url": "https://seclists.org/rss/oss-sec.rss"},
-    {"name": "inthewild", "url": "https://raw.githubusercontent.com/gmatuz/inthewilddb/master/rss.xml"},
-    {"name": "center-for-internet-security", "url": "https://www.cisecurity.org/feed/advisories"},
-    {"name": "the-hacker-news", "url": "https://feeds.feedburner.com/TheHackersNews"},
-    {"name": "bleeping-computer", "url": "https://www.bleepingcomputer.com/feed/"},
-    {"name": "krebs-on-security", "url": "https://krebsonsecurity.com/feed/"},
-    {"name": "schneier-on-security", "url": "https://www.schneier.com/feed/"},
-    {"name": "google-security-blog", "url": "http://feeds.feedburner.com/GoogleOnlineSecurityBlog"},
-    {"name": "microsoft-security-response-center", "url": "https://msrc.microsoft.com/blog/feed"},
-    {"name": "threatpost", "url": "https://threatpost.com/feed/"},
-    {"name": "help-net-security", "url": "https://www.helpnetsecurity.com/feed/"},
-    {"name": "cvefeed-latest", "url": "https://cvefeed.io/rssfeed/"},
-    {"name": "tenable", "url": "https://www.tenable.com/cve/feeds?sort=newest"},
-    {"name": "tenable", "url": "https://huntr.com/bounties/hacktivity"},
-    {"name": "tenable", "url": "https://cert.europa.eu/publications/security-advisories-rss"},
-    {"name": "tenable", "url": "https://www.security-database.com/view-all.php?date=All&sev=All&type=cve"},
     {
         "name": "(Web-)Insecurity Blog",
         "url": "https://security.lauritz-holtmann.de/index.xml"
+    },
+    {
+        "name": "404 Media",
+        "url": "https://www.404media.co/rss/"
     },
     {
         "name": "Access Vector - Vulnerability Research & Software Exploitation",
         "url": "https://accessvector.net/rss.xml"
     },
     {
-        "name": "Aleph Research - Posts",
-        "url": "http://little-canada.org/feeds/output/aleph-posts.rss"
-    },
-    {
-        "name": "Aleph Research - Vulns",
-        "url": "http://little-canada.org/feeds/output/aleph-vulns.rss"
+        "name": "Acronis: Cyber Protection Center",
+        "url": "https://www.acronis.com/en-us/tru/feed.xml"
     },
     {
         "name": "Alexander Popov",
@@ -82,10 +59,6 @@ rss_feed_list = {
         "url": "https://androidoffsec.withgoogle.com/index.xml"
     },
     {
-        "name": "Apple Security Research",
-        "url": "https://little-canada.org/feeds/output/applesecurityresearch.rss"
-    },
-    {
         "name": "Artificial truth",
         "url": "https://dustri.org/b/rss.xml"
     },
@@ -94,8 +67,16 @@ rss_feed_list = {
         "url": "https://blog.assetnote.io/feed.xml"
     },
     {
-        "name": "Blog - Atredis Partners",
-        "url": "https://www.atredis.com/blog?format=rss"
+        "name": "AttackIQ",
+        "url": "https://attackiq.com/blog/feed/"
+    },
+    {
+        "name": "Black Hills Infosec",
+        "url": "https://www.blackhillsinfosec.com/feed/"
+    },
+    {
+        "name": "Bleeping Computer",
+        "url": "https://www.bleepingcomputer.com/feed/"
     },
     {
         "name": "Blog on STAR Labs",
@@ -106,20 +87,32 @@ rss_feed_list = {
         "url": "https://www.shielder.it/blog/index.xml"
     },
     {
-        "name": "Brendon Tiszka",
-        "url": "https://little-canada.org/feeds/output/tiszka.rss"
+        "name": "Center for Internet Security",
+        "url": "https://www.cisecurity.org/feed/advisories"
     },
     {
         "name": "Check Point Research",
         "url": "https://research.checkpoint.com/feed/"
     },
     {
-        "name": "Cisco Talos Intelligence Group - Comprehensive Threat Intelligence",
-        "url": "http://feeds.feedburner.com/feedburner/Talos"
-    },
-    {
         "name": "Connor McGarr",
         "url": "https://connormcgarr.github.io/feed.xml"
+    },
+    {
+        "name": "CrowdStrike",
+        "url": "https://www.crowdstrike.com/blog/feed/"
+    },
+    {
+        "name": "CVE monitr",
+        "url": "https://cvemon.intruder.io/rss/cvetrends/latest"
+    },
+    {
+        "name": "cvefeed-latest",
+        "url": "https://cvefeed.io/rssfeed/"
+    },
+    {
+        "name": "Cybersecurity Hub",
+        "url": "https://www.cshub.com/rss/articles"
     },
     {
         "name": "DARKNAVY",
@@ -130,6 +123,14 @@ rss_feed_list = {
         "url": "https://blog.dfsec.com/feed.xml"
     },
     {
+        "name": "Darktrace",
+        "url": "https://darktrace.com/blog/rss.xml"
+    },
+    {
+        "name": "Decipher",
+        "url": "https://decipher.sc/feed/"
+    },
+    {
         "name": "Diary of a reverse-engineer",
         "url": "https://doar-e.github.io/feeds/rss.xml?_="
     },
@@ -138,16 +139,16 @@ rss_feed_list = {
         "url": "https://blog.doyensec.com/atom.xml"
     },
     {
-        "name": "Elttam",
-        "url": "https://little-canada.org/feeds/output/elttam.rss"
+        "name": "Electrospaces.net",
+        "url": "http://electrospaces.blogspot.com/feeds/posts/default"
     },
     {
         "name": "Embrace The Red",
         "url": "https://embracethered.com/blog/index.xml"
     },
     {
-        "name": "Exploits.forsale",
-        "url": "https://little-canada.org/feeds/output/exploitsforsale.rss"
+        "name": "Flashpoint",
+        "url": "https://flashpoint.io/feed/"
     },
     {
         "name": "Gamozo Labs Blog",
@@ -158,24 +159,64 @@ rss_feed_list = {
         "url": "https://github.blog/tag/github-security-lab/feed/"
     },
     {
-        "name": "Google Security Research Advisories",
-        "url": "https://little-canada.org/feeds/output/google-research-advisories.rss"
+        "name": "Google Security Blog",
+        "url": "http://feeds.feedburner.com/GoogleOnlineSecurityBlog"
+    },
+    {
+        "name": "Graham Cluley",
+        "url": "https://www.grahamcluley.com/feed/"
     },
     {
         "name": "Guido Vranken",
         "url": "https://guidovranken.com/feed/"
     },
     {
+        "name": "Hackread",
+        "url": "https://www.hackread.com/feed/"
+    },
+    {
         "name": "Hacktus",
         "url": "https://hacktus.tech/rss.xml"
+    },
+    {
+        "name": "Have I Been Pwned",
+        "url": "https://feeds.feedburner.com/HaveIBeenPwnedLatestBreaches"
+    },
+    {
+        "name": "Heimdal Security",
+        "url": "https://heimdalsecurity.com/blog/feed/"
+    },
+    {
+        "name": "Help Net Security",
+        "url": "https://www.helpnetsecurity.com/feed/"
+    },
+    {
+        "name": "Huntr Hacktivity",
+        "url": "https://huntr.com/bounties/hacktivity"
+    },
+    {
+        "name": "IBM X-Force",
+        "url": "https://securityintelligence.com/category/x-force/feed/"
     },
     {
         "name": "Impalabs Blog",
         "url": "https://blog.impalabs.com/feed.xml"
     },
     {
-        "name": "Intrigusâ€™ Security Lab",
+        "name": "Imperva",
+        "url": "https://www.imperva.com/blog/feed/"
+    },
+    {
+        "name": "Inthewild DB",
+        "url": "https://raw.githubusercontent.com/gmatuz/inthewilddb/master/rss.xml"
+    },
+    {
+        "name": "Intrigus' Security Lab",
         "url": "https://intrigus.org/feed.xml"
+    },
+    {
+        "name": "Intrusion Truth",
+        "url": "https://intrusiontruth.wordpress.com/feed/"
     },
     {
         "name": "Isosceles Blog",
@@ -186,12 +227,16 @@ rss_feed_list = {
         "url": "https://joaxcar.com/blog/feed/"
     },
     {
-        "name": "Joseph Ravichandran",
-        "url": "https://little-canada.org/feeds/output/jprx.rss?_123"
+        "name": "Kaspersky Labs (Securelist)",
+        "url": "https://securelist.com/feed/"
     },
     {
-        "name": "Keen Security Lab (Tencent)",
-        "url": "https://little-canada.org/feeds/output/tencent-keenlabs.rss"
+        "name": "Kevin Beaumont (DoublePulsar)",
+        "url": "https://doublepulsar.com/feed"
+    },
+    {
+        "name": "Krebs on Security",
+        "url": "https://krebsonsecurity.com/feed/"
     },
     {
         "name": "Low-level adventures",
@@ -202,12 +247,16 @@ rss_feed_list = {
         "url": "https://www.mdsec.co.uk/feed/"
     },
     {
-        "name": "Matteo Malvica",
-        "url": "https://www.matteomalvica.com/blog/index.xml"
+        "name": "Malwarebytes Labs",
+        "url": "https://blog.malwarebytes.com/feed/"
     },
     {
-        "name": "Meta - Red Team X - Advisories",
-        "url": "https://little-canada.org/feeds/output/meta-redteam-advisories.rss"
+        "name": "Mandiant / Google",
+        "url": "https://cloud.google.com/blog/products/identity-security/rss.xml"
+    },
+    {
+        "name": "Matteo Malvica",
+        "url": "https://www.matteomalvica.com/blog/index.xml"
     },
     {
         "name": "Meta Red Team X",
@@ -218,8 +267,32 @@ rss_feed_list = {
         "url": "https://microsoftedge.github.io/edgevr/feed.xml"
     },
     {
+        "name": "Microsoft Security Response Center",
+        "url": "https://msrc.microsoft.com/blog/feed"
+    },
+    {
+        "name": "Microsoft Threat Intelligence",
+        "url": "https://www.microsoft.com/en-us/security/blog/feed/"
+    },
+    {
+        "name": "Morphisec",
+        "url": "https://www.morphisec.com/feed/?post_type=blog"
+    },
+    {
         "name": "Mozilla Attack & Defense",
         "url": "https://blog.mozilla.org/attack-and-defense/feed/"
+    },
+    {
+        "name": "NCC Group",
+        "url": "https://research.nccgroup.com/feed/"
+    },
+    {
+        "name": "Naked Security (by Sophos)",
+        "url": "https://nakedsecurity.sophos.com/feed/"
+    },
+    {
+        "name": "NIST Upcoming CVEs",
+        "url": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml"
     },
     {
         "name": "ODS Security Research - Nolen Johnson",
@@ -238,7 +311,7 @@ rss_feed_list = {
         "url": "https://portswigger.net/research/rss"
     },
     {
-        "name": "Positive Technologies - learn and secure ",
+        "name": "Positive Technologies",
         "url": "http://feeds.feedburner.com/positiveTechnologiesResearchLab"
     },
     {
@@ -246,8 +319,8 @@ rss_feed_list = {
         "url": "https://blog.slonser.info/posts/index.xml"
     },
     {
-        "name": "Project Zero",
-        "url": "http://googleprojectzero.blogspot.com/feeds/posts/default"
+        "name": "ProofPoint",
+        "url": "https://www.proofpoint.com/us/rss.xml"
     },
     {
         "name": "Publications | Hacking Lab",
@@ -258,11 +331,23 @@ rss_feed_list = {
         "url": "https://blog.ret2.io/feed.xml"
     },
     {
+        "name": "Rapid7",
+        "url": "https://www.rapid7.com/db/"
+    },
+    {
         "name": "Realmode Labs - Medium",
         "url": "https://medium.com/feed/realmodelabs"
     },
     {
-        "name": "Research â€“ Codean Labs",
+        "name": "Recorded Future",
+        "url": "https://www.recordedfuture.com/feed"
+    },
+    {
+        "name": "Red Canary",
+        "url": "https://redcanary.com/feed/"
+    },
+    {
+        "name": "Research - Codean Labs",
         "url": "https://codeanlabs.com/blog/category/research/feed/"
     },
     {
@@ -270,8 +355,20 @@ rss_feed_list = {
         "url": "https://rhinosecuritylabs.com/feed/"
     },
     {
+        "name": "Risky Business News",
+        "url": "https://risky.biz/rss.xml"
+    },
+    {
+        "name": "SANS Internet Storm Center",
+        "url": "https://isc.sans.edu/rssfeed.xml"
+    },
+    {
         "name": "Sam Curry",
         "url": "https://samcurry.net/api/feed.rss"
+    },
+    {
+        "name": "Schneier on Security",
+        "url": "https://www.schneier.com/feed/"
     },
     {
         "name": "Sean Heelan's Blog",
@@ -282,6 +379,42 @@ rss_feed_list = {
         "url": "https://secfault-security.com/feed.rss"
     },
     {
+        "name": "Seclists - Bugtraq",
+        "url": "https://seclists.org/rss/bugtraq.rss"
+    },
+    {
+        "name": "Seclists - Full Disclosure",
+        "url": "https://seclists.org/rss/fulldisclosure.rss"
+    },
+    {
+        "name": "Seclists - OSS Security",
+        "url": "https://seclists.org/rss/oss-sec.rss"
+    },
+    {
+        "name": "Security Latest",
+        "url": "https://www.securitylatest.com/feed/"
+    },
+    {
+        "name": "SentinelLabs",
+        "url": "https://www.sentinelone.com/labs/feed/"
+    },
+    {
+        "name": "SentinelOne",
+        "url": "https://www.sentinelone.com/blog/feed/"
+    },
+    {
+        "name": "Silobreaker",
+        "url": "https://www.silobreaker.com/feed/"
+    },
+    {
+        "name": "Sophos: Malware",
+        "url": "https://news.sophos.com/en-us/category/malware/feed/"
+    },
+    {
+        "name": "SpiderLabs (Trustwave)",
+        "url": "https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/?format=feed&type=rss"
+    },
+    {
         "name": "Stories by Renwa on Medium",
         "url": "https://medium.com/@renwa/feed"
     },
@@ -290,32 +423,56 @@ rss_feed_list = {
         "url": "https://blog.stratumsecurity.com/rss/"
     },
     {
-        "name": "Synacktiv | Publications",
-        "url": "https://little-canada.org/feeds/output/synacktiv-publications.rss?_=123"
-    },
-    {
-        "name": "Talos - Vulnerability Reports",
-        "url": "http://little-canada.org/feeds/output/talos-reports.rss"
+        "name": "Talos Intelligence",
+        "url": "http://feeds.feedburner.com/talos"
     },
     {
         "name": "Taszk.io labs",
         "url": "https://labs.taszk.io/blog/index.xml"
     },
     {
-        "name": "Teddy Katzâ€™s Blog",
+        "name": "Teddy Katz's Blog",
         "url": "https://blog.teddykatz.com/feed.xml"
     },
     {
-        "name": "Trenchant",
-        "url": "http://little-canada.org/feeds/output/trenchant.rss"
+        "name": "Tenable CVE Feed",
+        "url": "https://www.tenable.com/cve/feeds?sort=newest"
+    },
+    {
+        "name": "The DFIR Report",
+        "url": "https://thedfirreport.com/feed/"
+    },
+    {
+        "name": "The Hacker News",
+        "url": "https://feeds.feedburner.com/TheHackersNews"
+    },
+    {
+        "name": "The Last Watchdog",
+        "url": "https://www.lastwatchdog.com/feed/"
+    },
+    {
+        "name": "Unit 42",
+        "url": "https://unit42.paloaltonetworks.com/feed/"
+    },
+    {
+        "name": "Volexity",
+        "url": "https://www.volexity.com/blog/feed/"
+    },
+    {
+        "name": "Vulners",
+        "url": "https://vulners.com/rss.xml"
+    },
+    {
+        "name": "We Live Security",
+        "url": "https://www.welivesecurity.com/feed/"
     },
     {
         "name": "Windows Internals Blog",
         "url": "https://windows-internals.com/feed/"
     },
     {
-        "name": "Zero Day Initiative - Blog",
-        "url": "https://www.zerodayinitiative.com/blog?format=rss"
+        "name": "Zero Day Initiative - Upcoming",
+        "url": "https://www.zerodayinitiative.com/rss/upcoming/"
     },
     {
         "name": "a place of anatomical precision",
@@ -346,7 +503,7 @@ rss_feed_list = {
         "url": "https://spaceraccoon.dev/feed/"
     },
     {
-        "name": "watchTowr Labs - Blog",
+        "name": "watchTowr Labs",
         "url": "https://labs.watchtowr.com/rss/"
     }
     
@@ -361,79 +518,44 @@ keywords = {
     ],
     "static_keywords": [
         "agi",
+        "abnormal",
         "ai",
         "amazon",
-        "android",
         "apple",
         "atlassian",
         "aws",
-        "breach",
-        "ccpa",
-        "chatgpt",
         "chrome",
         "confluence",
         "crowdstrike",
-        "ddos",
         "docker",
         "docusign",
-        "firewall",
         "gcp",
-        "gdpr",
         "gemini",
-        "github",
         "globalprotect",
         "google cloud",
         "google cloud platform",
         "google workspace",
         "healthcare",
-        "hipaa",
-        "hitech",
-        "hitrust",
-        "iam",
-        "ids",
         "infoblox",
         "ios",
-        "iphone",
-        "ips",
         "jamf",
         "jamf pro",
         "jenkins",
         "jira",
         "keeper",
         "kubernetes",
-        "log4j",
-        "log4shell",
         "lucid",
         "macbook",
         "macos",
         "malware",
-        "mfa",
-        "nist",
-        "oauth",
         "okta",
-        "openai",
-        "openssl",
-        "phi",
-        "pii",
-        "poc",
-        "postgresql",
-        "powershell",
         "ransomware",
-        "saml",
-        "scim",
-        "siem",
         "slack",
-        "soar",
-        "social engineering",
-        "sso",
-        "terraform",
-        "threat intelligence",
-        "vpn",
-        "waf",
         "zoom",
         "cloud armor",
         "hacker one",
         "h1",
-        "panorama"
+        "panorama",
+        "palo alto"
     ]
 }
