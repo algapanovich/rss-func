@@ -21,13 +21,11 @@ rss_feed_list = {
     {"name": "wired-security", "url": "https://www.wired.com/feed/category/security/latest/rss"},
     {"name": "threatpost", "url": "https://threatpost.com/feed/"},
     {"name": "krebs-on-security", "url": "https://krebsonsecurity.com/feed/"},
-    {"name": "schneier-on-security", "url": "https://www.schneier.com/feed/"},
     {"name": "graham-cluley", "url": "https://grahamcluley.com/feed/"},
     {"name": "google-mandiant-blog", "url": "https://www.mandiant.com/resources/blog/rss.xml"},
     {"name": "microsoft-security-response-center", "url": "https://msrc.microsoft.com/blog/feed"},
     {"name": "paloalto-unit42", "url": "https://unit42.paloaltonetworks.com/feed/"},
     {"name": "crowdstrike-blog", "url": "https://www.crowdstrike.com/blog/feed/"},
-    {"name": "sophos-naked-security", "url": "https://nakedsecurity.sophos.com/feed/"},
     {"name": "securelist-kaspersky", "url": "https://securelist.com/feed/"},
     {"name": "welivesecurity-eset", "url": "https://www.welivesecurity.com/feed/"},
     {"name": "uk-ncsc", "url": "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml"}
@@ -111,10 +109,6 @@ rss_feed_list = {
         "url": "https://cvefeed.io/rssfeed/"
     },
     {
-        "name": "Cybersecurity Hub",
-        "url": "https://www.cshub.com/rss/articles"
-    },
-    {
         "name": "DARKNAVY",
         "url": "https://www.darknavy.org/index.xml"
     },
@@ -175,10 +169,6 @@ rss_feed_list = {
         "url": "https://www.hackread.com/feed/"
     },
     {
-        "name": "Hacktus",
-        "url": "https://hacktus.tech/rss.xml"
-    },
-    {
         "name": "Have I Been Pwned",
         "url": "https://feeds.feedburner.com/HaveIBeenPwnedLatestBreaches"
     },
@@ -193,10 +183,6 @@ rss_feed_list = {
     {
         "name": "Huntr Hacktivity",
         "url": "https://huntr.com/bounties/hacktivity"
-    },
-    {
-        "name": "IBM X-Force",
-        "url": "https://securityintelligence.com/category/x-force/feed/"
     },
     {
         "name": "Impalabs Blog",
@@ -243,10 +229,6 @@ rss_feed_list = {
         "url": "https://0x434b.dev/rss/"
     },
     {
-        "name": "MDSec",
-        "url": "https://www.mdsec.co.uk/feed/"
-    },
-    {
         "name": "Malwarebytes Labs",
         "url": "https://blog.malwarebytes.com/feed/"
     },
@@ -287,20 +269,8 @@ rss_feed_list = {
         "url": "https://research.nccgroup.com/feed/"
     },
     {
-        "name": "Naked Security (by Sophos)",
-        "url": "https://nakedsecurity.sophos.com/feed/"
-    },
-    {
-        "name": "NIST Upcoming CVEs",
-        "url": "https://nvd.nist.gov/feeds/xml/cve/misc/nvd-rss.xml"
-    },
-    {
         "name": "ODS Security Research - Nolen Johnson",
         "url": "https://oddsolutions.github.io/feed.xml"
-    },
-    {
-        "name": "Oversecured",
-        "url": "https://blog.oversecured.com/feed.xml"
     },
     {
         "name": "PS C:\\Users\\itm4n> _",
@@ -329,10 +299,6 @@ rss_feed_list = {
     {
         "name": "RET2 Systems Blog",
         "url": "https://blog.ret2.io/feed.xml"
-    },
-    {
-        "name": "Rapid7",
-        "url": "https://www.rapid7.com/db/"
     },
     {
         "name": "Realmode Labs - Medium",
@@ -365,10 +331,6 @@ rss_feed_list = {
     {
         "name": "Sam Curry",
         "url": "https://samcurry.net/api/feed.rss"
-    },
-    {
-        "name": "Schneier on Security",
-        "url": "https://www.schneier.com/feed/"
     },
     {
         "name": "Sean Heelan's Blog",
@@ -407,20 +369,12 @@ rss_feed_list = {
         "url": "https://www.silobreaker.com/feed/"
     },
     {
-        "name": "Sophos: Malware",
-        "url": "https://news.sophos.com/en-us/category/malware/feed/"
-    },
-    {
         "name": "SpiderLabs (Trustwave)",
         "url": "https://www.trustwave.com/en-us/resources/blogs/spiderlabs-blog/?format=feed&type=rss"
     },
     {
         "name": "Stories by Renwa on Medium",
         "url": "https://medium.com/@renwa/feed"
-    },
-    {
-        "name": "Stratum Security Blog",
-        "url": "https://blog.stratumsecurity.com/rss/"
     },
     {
         "name": "Talos Intelligence",
@@ -445,10 +399,6 @@ rss_feed_list = {
     {
         "name": "The Hacker News",
         "url": "https://feeds.feedburner.com/TheHackersNews"
-    },
-    {
-        "name": "The Last Watchdog",
-        "url": "https://www.lastwatchdog.com/feed/"
     },
     {
         "name": "Unit 42",

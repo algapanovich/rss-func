@@ -102,3 +102,11 @@ def test_send_message_tristate(monkeypatch):
     assert slacker.send_message("cve", {"slack_enabled": "false"}, {}, []) is None
     params = {"slack_enabled": "true", "slack_token": "t", "channels": {}}
     assert slacker.send_message("cve", params, {}, []) is False
+
+
+def test_bad_timestamp_does_not_raise():
+    bad = {"title": "okta", "link": "https://x/bad", "published_parsed": time.struct_time((0, 1, 1, 0, 0, 0, 0, 1, 0))}
+    feeds = [({"entries": [bad]}, "feed")]
+    matched, errors, date_errors, _ = rf.prepare_feed_message(
+        feeds, rf.compile_keywords(["okta"]), None, 36, now=NOW)
+    assert matched["articles"] == [] and errors == [] and date_errors == ["feed"]

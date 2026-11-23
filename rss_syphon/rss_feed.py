@@ -72,7 +72,7 @@ async def fetch(sem, session, feed_name, feed_url, validators, new_validators):
             logger.error(msg)
             return msg, feed_name
     except Exception as e:
-        msg = f"Error during fetch for {feed_name}: {e}"
+        msg = f"Error during fetch for {feed_name}: {type(e).__name__}: {e}"
         logger.error(msg)
         return msg, feed_name
 
@@ -85,7 +85,7 @@ async def fetch_all(feeds_list, state, new_validators):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:103.0) Gecko/20100101 Firefox/103.0'
     }
     sem = asyncio.Semaphore(10)
-    async with aiohttp.ClientSession(headers=headers) as session:
+    async with aiohttp.ClientSession(headers=headers, max_field_size=32768) as session:
         return await asyncio.gather(
             *[
                 fetch(sem, session, f["name"], f["url"],
@@ -161,7 +161,10 @@ def entry_datetime(item):
         parsed = item.get(field)
         if parsed:
             # feedparser *_parsed values are UTC struct_times
-            return datetime.fromtimestamp(timegm_utc(parsed), tz=timezone.utc)
+            try:
+                return datetime.fromtimestamp(timegm_utc(parsed), tz=timezone.utc)
+            except (ValueError, OverflowError, OSError):
+                continue  # garbage timestamp (e.g. year 0), try the next field
     return None
 
 
