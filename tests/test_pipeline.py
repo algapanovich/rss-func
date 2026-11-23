@@ -110,3 +110,32 @@ def test_bad_timestamp_does_not_raise():
     matched, errors, date_errors, _ = rf.prepare_feed_message(
         feeds, rf.compile_keywords(["okta"]), None, 36, now=NOW)
     assert matched["articles"] == [] and errors == [] and date_errors == ["feed"]
+
+
+def test_keyword_lists_have_no_duplicates_or_glued_words():
+    import rss_data, rss_data_vsa
+    for m in (rss_data, rss_data_vsa):
+        k = m.keywords["static_keywords"]
+        assert len(k) == len(set(k)), m.__name__
+        assert all(w == w.strip() and w for w in k)
+    team = rss_data.keywords["static_keywords"]
+    for noisy in ("ai", "agi", "h1"):
+        assert noisy not in team
+
+
+def test_seed_only_marks_seen_without_posting(monkeypatch, tmp_path):
+    monkeypatch.setenv("SEED_ONLY", "true")
+    monkeypatch.setenv("STATE_BACKEND", "file")
+    monkeypatch.chdir(tmp_path)
+    posted = []
+    monkeypatch.setattr(rf, "send_message", lambda **kw: posted.append(kw))
+    monkeypatch.setattr(rf, "fetch_feed_results", lambda feeds, state=None, nv=None: [({"entries": [entry("okta flaw", 1)]}, "feed")])
+    monkeypatch.setattr(rf, "rss_feed_list", {"news": [{"name": "feed", "url": "https://x"}]})
+    monkeypatch.setattr(rf, "keywords_data", {"static_keywords": ["okta"], "ignored": [], "last_modified": None})
+    monkeypatch.setattr(rf, "datetime", type("D", (), {"now": staticmethod(lambda tz=None: NOW),
+                                                      "strptime": staticmethod(datetime.strptime),
+                                                      "fromtimestamp": staticmethod(datetime.fromtimestamp)}))
+    assert rf.run_job("news") is True
+    assert posted == []
+    from rss_syphon.state import get_state
+    assert len(get_state(rf.DEPLOYMENT, "news").seen) == 1

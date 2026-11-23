@@ -99,3 +99,20 @@ def test_slack_non_alarm_has_no_attachment():
     found = {"md5s": [], "links": [], "seen_cves": [], "fixed_cves": []}
     items = slacker.build_results_message({"articles": arts}, found, "cve")
     assert "attachments" not in slacker._post_kwargs(items[0])
+
+
+def test_budget_exhausted_defers_article(monkeypatch):
+    monkeypatch.setenv("NVD_MAX_LOOKUPS", "1")
+    def get(url, timeout=20, headers=None):
+        if "known_exploited" in url: return {"vulnerabilities": []}
+        if "epss" in url: return {"data": []}
+        return nvd(8.0, "HIGH")
+    arts = enrich.enrich_articles(articles("CVE-2025-0010 a", "CVE-2025-0011 b"), MemoryState(), get=get, sleep=lambda s: None)
+    assert [a["deferred"] for a in arts] == [False, True]
+
+
+def test_lookup_failure_does_not_defer():
+    boom = RuntimeError("down")
+    get = fake_get({"known_exploited": {"vulnerabilities": []}, "epss": {"data": []}, "cveId=": boom})
+    arts = enrich.enrich_articles(articles("CVE-2025-0012 a"), MemoryState(), get=get, sleep=lambda s: None)
+    assert arts[0]["deferred"] is False

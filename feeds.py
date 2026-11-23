@@ -28,8 +28,20 @@ rss_feed_list = {
     {"name": "crowdstrike-blog", "url": "https://www.crowdstrike.com/blog/feed/"},
     {"name": "securelist-kaspersky", "url": "https://securelist.com/feed/"},
     {"name": "welivesecurity-eset", "url": "https://www.welivesecurity.com/feed/"},
-    {"name": "uk-ncsc", "url": "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml"}
-    
+    {"name": "uk-ncsc", "url": "https://www.ncsc.gov.uk/api/1/services/v1/report-rss-feed.xml"},
+    {"name": "wiz-blog", "url": "https://www.wiz.io/feed/rss.xml"},
+    {"name": "tenable-blog", "url": "https://www.tenable.com/blog/feed"},
+    {"name": "securityweek", "url": "https://feeds.feedburner.com/securityweek"},
+    {"name": "the-record", "url": "https://therecord.media/feed"},
+    {"name": "risky-business-news", "url": "https://risky.biz/feeds/risky-business-news/"},
+    {"name": "simon-willison", "url": "https://simonwillison.net/atom/everything/"},
+    {"name": "socket-supply-chain", "url": "https://socket.dev/api/blog/feed.atom"},
+    {"name": "stepsecurity", "url": "https://www.stepsecurity.io/blog/rss.xml"},
+    {"name": "aikido-security", "url": "https://www.aikido.dev/blog/rss.xml"},
+    {"name": "jfrog-security-research", "url": "https://jfrog.com/blog/feed/"},
+    {"name": "datadog-security-labs", "url": "https://securitylabs.datadoghq.com/rss/feed.xml"},
+    {"name": "huntress-blog", "url": "https://www.huntress.com/blog/rss.xml"},
+    {"name": "sekoia-blog", "url": "https://blog.sekoia.io/feed/"},
     ],
     "cve": [
     {
@@ -455,8 +467,38 @@ rss_feed_list = {
     {
         "name": "watchTowr Labs",
         "url": "https://labs.watchtowr.com/rss/"
-    }
-    
-
+    },
+    {
+        "name": "Palo Alto Security Advisories",
+        "url": "https://security.paloaltonetworks.com/rss.xml"
+    },
+    {
+        "name": "Jenkins Security Advisories",
+        "url": "https://www.jenkins.io/security/advisories/rss.xml"
+    },
+    {
+        "name": "Kubernetes Official CVE Feed",
+        "url": "https://kubernetes.io/docs/reference/issues-security/official-cve-feed/feed.xml"
+    },
+    {
+        "name": "GKE Security Bulletins",
+        "url": "https://cloud.google.com/feeds/gke-security-bulletins.xml"
+    },
+    {
+        "name": "Chrome Releases",
+        "url": "https://chromereleases.googleblog.com/feeds/posts/default"
+    },
+    {
+        "name": "Google Project Zero",
+        "url": "https://googleprojectzero.blogspot.com/feeds/posts/default"
+    },
+    {
+        "name": "GitHub Blog Security",
+        "url": "https://github.blog/security/feed/"
+    },
+    {
+        "name": "Jamf Blog",
+        "url": "https://www.jamf.com/blog/rss/"
+    },
 ]
 }

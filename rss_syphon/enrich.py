@@ -9,6 +9,8 @@ For every CVE mentioned in a matched article we add:
 Everything fails soft: if a source is unreachable the article is still posted,
 just without that field. High/Critical severity or a KEV listing sets
 article["alarm"] = True, which the Slack layer renders as a red alert.
+Articles whose CVEs could not be rated only because NVD_MAX_LOOKUPS was reached get
+article["deferred"] = True and are retried on the next run.
 
 Env:
   NVD_API_KEY          optional, raises the NVD rate limit
@@ -126,12 +128,14 @@ def enrich_articles(articles, state=None, get=http_get_json, sleep=time.sleep):
     budget = int(os.getenv("NVD_MAX_LOOKUPS", "25"))
     delay = 0.7 if api_key else 6.5  # NVD: 50 req/30s with key, 5 req/30s without
     cvss = {}
+    skipped = set()  # CVEs we could not look up only because the per-run cap was reached
     for cve_id in all_ids:
         cached = state.get_cve(cve_id) if state else None
         if cached and cached.get("severity"):
             cvss[cve_id] = (cached.get("cvss"), cached.get("severity"))
             continue
         if budget <= 0:
+            skipped.add(cve_id)
             continue
         budget -= 1
         try:
@@ -161,4 +165,6 @@ def enrich_articles(articles, state=None, get=http_get_json, sleep=time.sleep):
             "epss": max(epss_vals) if epss_vals else None,
         }
         a["alarm"] = top in ("CRITICAL", "HIGH") or a["intel"]["kev"]
+        # Held back and retried next run (cache fills over runs) instead of posting unrated
+        a["deferred"] = any(c in skipped for c in a["cve_ids"])
     return articles

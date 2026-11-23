@@ -272,11 +272,25 @@ def run_job(job_type):
     matched, feed_errors, date_errors, old_articles = prepare_feed_message(
         processed, patterns, ignore_re, seen=state.is_seen
     )
+    if os.getenv("SEED_ONLY", "").lower() == "true":
+        # One-time baseline after changing keywords or feeds: record what matches
+        # right now as seen, without posting, so the backlog does not flood Slack.
+        state.mark_seen(x["uid"] for x in matched["articles"])
+        for url, v in new_validators.items():
+            state.set_validators(url, v.get("etag"), v.get("last_modified"))
+        state.save()
+        logger.info(f"SEED_ONLY: recorded {len(matched['articles'])} article(s) as seen, nothing posted")
+        return True
+
     if job_type == "cve":
         try:
             enrich_articles(matched["articles"], state)
         except Exception as e:  # never block posting on enrichment
             logger.warning(f"Enrichment failed, posting without it: {e}")
+        deferred = [x for x in matched["articles"] if x.get("deferred")]
+        if deferred:
+            logger.info(f"Deferring {len(deferred)} article(s) to the next run (NVD lookup cap)")
+            matched["articles"] = [x for x in matched["articles"] if not x.get("deferred")]
     logger.info(f"New matched articles for {job_type}: {len(matched['articles'])}")
     for article in matched["articles"]:
         logger.info(f"  - {article.get('title', 'No Title')}")
