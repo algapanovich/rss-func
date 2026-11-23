@@ -172,6 +172,49 @@ def clean_html(input_text):
     return re.sub('\n\n', '\n', text)
 
 
+SUMMARY_MAX_CHARS = 220
+_URL_RE = re.compile(r"https?://\S+")
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9])")
+
+
+def one_liner(text, limit=SUMMARY_MAX_CHARS):
+    """
+    Short one-line summary of a feed description: drops the 'Description' header,
+    'Read more at <url>' boilerplate and bare URLs, then keeps the first sentence
+    (cut at a word boundary if it is still too long).
+    """
+    text = clean_html(text or "")
+    text = re.sub(r"(?is)read more at.*$", "", text)
+    text = _URL_RE.sub("", text)
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    if lines and lines[0].lower().rstrip(":") in ("description", "summary", "overview"):
+        lines = lines[1:]
+    flat = " ".join(lines)
+    if not flat:
+        return ""
+    first = _SENTENCE_END.split(flat, maxsplit=1)[0].strip()
+    if len(first) > limit:
+        first = first[:limit].rsplit(" ", 1)[0].rstrip(",;:- ") + "..."
+    return first
+
+
+def _cve_headline(cve_ids, title, severity, kev, alarm):
+    """'HIGH: CVE-2026-1234' (up to 3 ids), with the title appended when it adds information."""
+    shown = ", ".join(cve_ids[:3]) + (f" +{len(cve_ids) - 3} more" if len(cve_ids) > 3 else "")
+    ids = r"CVE-\d{4}-\d{4,}"
+    clean = re.sub(rf"\(\s*{ids}(?:\s*[,/&]\s*{ids})*\s*\)", "", title or "", flags=re.IGNORECASE)
+    clean = re.sub(ids, "", clean, flags=re.IGNORECASE)
+    clean = re.sub(r"\s{2,}", " ", clean).strip(" \t:,;|-")
+    text = f"{shown}: {clean}" if re.search(r"\w", clean) else shown
+    if alarm:
+        if severity in ("CRITICAL", "HIGH"):
+            label = severity
+        else:
+            label = f"KEV, {severity}" if severity else "KEV"
+        return f":rotating_light: *{label}*: {text}"
+    return f"*{severity}*: {text}" if severity else text
+
+
 def _intel_line(intel):
     """One-line summary of severity, exploitation status and EPSS."""
     parts = []
@@ -246,22 +289,19 @@ def build_results_message(feed_results, rss_found_already, rss_type):
                     cve_url_list.append(
                         f"<https://nvd.nist.gov/vuln/detail/{cve_id}|{cve_id}{score_txt} {addon}>")
 
+                summary_line = one_liner(post_summary) or one_liner(post_title)
+                intel_line = _intel_line(intel) or "unknown (not yet rated)"
                 body = ""
-                if post_summary:
-                    body += f" • summary: {clean_html(post_summary)}\n"
-                intel_line = _intel_line(intel)
-                if intel_line:
-                    body += f" • severity: {intel_line}\n"
+                if summary_line:
+                    body += f" • summary: {summary_line}\n"
+                body += f" • severity: {intel_line}\n"
                 if cve_url_list:
-                    body += f"\n • cve(s): {', '.join(cve_url_list)}\n"
+                    body += f" • cve(s): {', '.join(cve_url_list)}\n"
                 body += footer
 
                 alarm = bool(rss_post.get("alarm"))
-                if alarm:
-                    label = intel.get("severity") if intel.get("severity") in ("CRITICAL", "HIGH") else "KEV"
-                    headline = f":rotating_light: *{label}*: {post_title}"
-                else:
-                    headline = f"\n{post_title}"
+                headline = _cve_headline(sorted(found_cves), post_title, intel.get("severity"),
+                                         intel.get("kev"), alarm)
                 items.append({"headline": headline, "body": body, "alarm": alarm})
 
     return items

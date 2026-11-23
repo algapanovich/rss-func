@@ -116,3 +116,47 @@ def test_lookup_failure_does_not_defer():
     get = fake_get({"known_exploited": {"vulnerabilities": []}, "epss": {"data": []}, "cveId=": boom})
     arts = enrich.enrich_articles(articles("CVE-2025-0012 a"), MemoryState(), get=get, sleep=lambda s: None)
     assert arts[0]["deferred"] is False
+
+
+TENABLE = """Description
+An authenticated attacker must reach the Edge file APIs through the Leader. On affected deployments Read Only access permits these calls.
+
+Read more at
+https://www.tenable.com/cve/CVE-2026-115903"""
+
+
+def test_one_liner_first_sentence_without_boilerplate():
+    out = slacker.one_liner(TENABLE)
+    assert out == "An authenticated attacker must reach the Edge file APIs through the Leader."
+    assert "Read more" not in out and "http" not in out and not out.startswith("Description")
+
+
+def test_one_liner_truncates_long_sentence_at_word_boundary():
+    out = slacker.one_liner("word " * 200, limit=50)
+    assert len(out) <= 53 and out.endswith("...")
+
+
+def test_one_liner_handles_html_and_empty():
+    assert slacker.one_liner("<p>Foo before 2.3 has a bug. More text.</p>") == "Foo before 2.3 has a bug."
+    assert slacker.one_liner("") == ""
+
+
+def test_headline_formats():
+    h = slacker._cve_headline
+    assert h(["CVE-2026-115903"], "CVE-2026-115903", "HIGH", False, True) == ":rotating_light: *HIGH*: CVE-2026-115903"
+    assert h(["CVE-2026-1001"], "Flaw in Foo (CVE-2026-1001)", "MEDIUM", False, False) == "*MEDIUM*: CVE-2026-1001: Flaw in Foo"
+    assert h(["CVE-2026-1001"], "Flaw", None, True, True) == ":rotating_light: *KEV*: CVE-2026-1001: Flaw"
+    assert h(["CVE-2026-1001"], "Flaw", "MEDIUM", True, True).startswith(":rotating_light: *KEV, MEDIUM*")
+    assert h([f"CVE-2026-{1000 + i}" for i in range(1, 6)], "x", None, False, False).startswith("CVE-2026-1001, CVE-2026-1002, CVE-2026-1003 +2 more")
+
+
+def test_post_body_has_summary_then_severity_lines():
+    art = articles("CVE-2026-115903")[0]
+    art.update(summary=TENABLE, alarm=True,
+               intel={"cves": {"CVE-2026-115903": {"cvss": 7.1}}, "severity": "HIGH", "cvss": 7.1, "kev": False, "epss": 0.004})
+    found = {"md5s": [], "links": [], "seen_cves": [], "fixed_cves": []}
+    item = slacker.build_results_message({"articles": [art]}, found, "cve")[0]
+    lines = item["body"].splitlines()
+    assert lines[0].startswith(" • summary: An authenticated attacker")
+    assert lines[1] == " • severity: HIGH (CVSS 7.1) | EPSS 0.4%"
+    assert item["headline"] == ":rotating_light: *HIGH*: CVE-2026-115903"
