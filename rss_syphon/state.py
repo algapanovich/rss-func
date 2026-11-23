@@ -11,7 +11,8 @@ Backends:
   memory    nothing persisted.
 
 Document shape:
-  {"seen": {uid: unix_ts}, "validators": {feed_url: {"etag":..,"last_modified":..}}}
+  {"seen": {uid: unix_ts}, "validators": {feed_url: {"etag":..,"last_modified":..}},
+   "cve_cache": {cve_id: {"cvss":.., "severity":.., "ts":..}}}
 """
 import json
 import logging
@@ -29,6 +30,7 @@ class State:
     def __init__(self):
         self.seen = {}
         self.validators = {}
+        self.cve_cache = {}  # cve_id -> {"cvss": float|None, "severity": str|None, "ts": unix}
 
     # -- subclass hooks ---------------------------------------------------
     def load(self):
@@ -49,6 +51,7 @@ class State:
     def prune(self, now=None):
         cutoff = (now or time.time()) - SEEN_TTL_DAYS * 86400
         self.seen = {k: v for k, v in self.seen.items() if v >= cutoff}
+        self.cve_cache = {k: v for k, v in self.cve_cache.items() if v.get("ts", 0) >= cutoff}
 
     def get_validators(self, url):
         return self.validators.get(url, {})
@@ -57,13 +60,20 @@ class State:
         if etag or last_modified:
             self.validators[url] = {"etag": etag, "last_modified": last_modified}
 
+    def get_cve(self, cve_id):
+        return self.cve_cache.get(cve_id)
+
+    def set_cve(self, cve_id, cvss, severity):
+        self.cve_cache[cve_id] = {"cvss": cvss, "severity": severity, "ts": time.time()}
+
     def _to_doc(self):
-        return {"seen": self.seen, "validators": self.validators}
+        return {"seen": self.seen, "validators": self.validators, "cve_cache": self.cve_cache}
 
     def _from_doc(self, doc):
         doc = doc or {}
         self.seen = {k: float(v) for k, v in (doc.get("seen") or {}).items()}
         self.validators = doc.get("validators") or {}
+        self.cve_cache = doc.get("cve_cache") or {}
 
 
 class MemoryState(State):

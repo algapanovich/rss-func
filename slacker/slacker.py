@@ -106,6 +106,26 @@ def read_channel(client, channel_id, rss_type):
     return re_dict
 
 
+ALARM_COLOR = "#D50000"  # red attachment bar for High / Critical / KEV items
+
+
+def _post_kwargs(item):
+    """chat.postMessage arguments for one item {"headline","body","alarm"}."""
+    if item.get("alarm"):
+        # Headline stays in the message text (drives notifications), body goes
+        # into a red attachment so the whole post is visibly flagged.
+        return {
+            "text": item["headline"],
+            "attachments": [{
+                "color": ALARM_COLOR,
+                "text": item["body"],
+                "fallback": item["headline"],
+                "mrkdwn_in": ["text"],
+            }],
+        }
+    return {"text": f"{item['headline']}\n{item['body']}".strip()}
+
+
 def post_message(client, channel_id, messages):
     """
     This requires the following scopes:
@@ -114,26 +134,27 @@ def post_message(client, channel_id, messages):
 
     :param client: Slack Client Object
     :param channel_id: Slack Channel ID
-    :param messages: Message body content
+    :param messages: list of {"headline","body","alarm"} items, or a plain string
     :return: True if every message was posted
     """
+    if isinstance(messages, str):
+        messages = [{"headline": m.strip(), "body": "", "alarm": False}
+                    for m in messages.split('---EOM---') if m.strip()]
     all_ok = True
-    for message in messages.split('---EOM---'):
-        if message.strip():
-            try:
-                # Call the chat.postMessage method using the WebClient
-                result = client.chat_postMessage(
-                    channel=channel_id,
-                    text=message,
-                    unfurl_links=False,
-                    unfurl_media=False,
-                    parse="mrkdwn"
-                )
-                logger.debug(result)
-                time.sleep(1)
-            except SlackApiError as e:
-                all_ok = False
-                logger.error(f"Error posting message: {e}")
+    for item in messages:
+        try:
+            result = client.chat_postMessage(
+                channel=channel_id,
+                unfurl_links=False,
+                unfurl_media=False,
+                parse="mrkdwn",
+                **_post_kwargs(item),
+            )
+            logger.debug(result)
+            time.sleep(1)
+        except SlackApiError as e:
+            all_ok = False
+            logger.error(f"Error posting message: {e}")
     return all_ok
 
 
@@ -151,80 +172,99 @@ def clean_html(input_text):
     return re.sub('\n\n', '\n', text)
 
 
+def _intel_line(intel):
+    """One-line summary of severity, exploitation status and EPSS."""
+    parts = []
+    if intel.get("severity"):
+        sev = intel["severity"]
+        parts.append(f"{sev} (CVSS {intel['cvss']})" if intel.get("cvss") is not None else sev)
+    if intel.get("kev"):
+        parts.append("exploited in the wild (CISA KEV)")
+    if intel.get("epss") is not None:
+        parts.append(f"EPSS {intel['epss'] * 100:.1f}%")
+    return " | ".join(parts)
+
+
 def build_results_message(feed_results, rss_found_already, rss_type):
     """
-    Build message which will be used as the content body
+    Build the list of messages to post.
 
     :param feed_results: Full list of processed rss posts
     :param rss_found_already: Filter for RSS articles found in Slack channel
     :param rss_type: Limited to News or CVE type articles
-    :return: Message body content
+    :return: list of {"headline", "body", "alarm"}
     """
-    res = ""
+    items = []
 
-    if feed_results.get("articles"):
-        for rss_post in feed_results["articles"]:
-            # Skip if we've already posted this based on MD5 or link
-            if rss_post['md5'] in rss_found_already['md5s']:
-                continue
-            elif rss_post['link'] in rss_found_already['links']:
-                continue
-            
-            post_title = rss_post.get("title", "No Title")
-            post_summary = rss_post.get("summary", "")
-            post_title_lower = post_title.lower()
-            post_summary_lower = post_summary.lower()
+    for rss_post in feed_results.get("articles") or []:
+        # Skip if we've already posted this based on MD5 or link
+        if rss_post['md5'] in rss_found_already['md5s']:
+            continue
+        elif rss_post['link'] in rss_found_already['links']:
+            continue
 
-            # Publishing News
-            if rss_type == "news":
-                if "cve" not in post_title_lower and "vulnerability" not in post_title_lower:
-                    res += f"\n{post_title}\n"
-                    res += f" • link: {rss_post['link']}\n"
-                    res += f" • md5: {rss_post['md5']}\n"
-                    res += f" • keyword(s): {rss_post.get('keywords', [])}\n"
-                    res += f" • feed: {rss_post.get('rss_feed_name', 'N/A')}\n"
-                    res += f"---EOM---"
+        post_title = rss_post.get("title", "No Title")
+        post_summary = rss_post.get("summary", "")
+        post_title_lower = post_title.lower()
+        post_summary_lower = post_summary.lower()
 
-            # Publishing CVEs
-            elif rss_type == "cve":
-                if "cve" in post_title_lower or "cve" in post_summary_lower:
-                    cve_list = []
-                    cve_url_list = []
-                    cve_regex = r"(CVE-20[0-9]{2}-\d+)"
+        footer = (
+            f" • link: {rss_post['link']}\n"
+            f" • md5: {rss_post['md5']}\n"
+            f" • keyword(s): {rss_post.get('keywords', [])}\n"
+            f" • feed: {rss_post.get('rss_feed_name', 'N/A')}\n"
+        )
 
-                    # Find all unique CVEs in title and summary
-                    found_cves = set(re.findall(cve_regex, f"{post_title} {post_summary}", re.IGNORECASE))
+        # Publishing News
+        if rss_type == "news":
+            if "cve" not in post_title_lower and "vulnerability" not in post_title_lower:
+                items.append({"headline": f"\n{post_title}", "body": footer, "alarm": False})
 
-                    # If CVEs were found in this article, check if all of them have already been seen.
-                    # If so, skip this article entirely.
-                    if found_cves and found_cves.issubset(set(rss_found_already['seen_cves'])):
-                        continue
-                    
-                    for cve_id in sorted(list(found_cves)):
-                        addon = ""
-                        if cve_id in rss_found_already["fixed_cves"]:
-                            addon += ":white_check_mark:"
-                        elif cve_id in rss_found_already["seen_cves"]:
-                            addon += ":eyes:" # Using :eyes: as a more standard "seen" emoji
-                        
-                        # Append the formatted CVE link to the list
-                        cve_url_list.append(
-                            f"<https://cve.mitre.org/cgi-bin/cvename.cgi?name={cve_id}|{cve_id} {addon}>")
+        # Publishing CVEs
+        elif rss_type == "cve":
+            if "cve" in post_title_lower or "cve" in post_summary_lower:
+                cve_regex = r"(CVE-20[0-9]{2}-\d+)"
 
-                    cve_links = ", ".join(cve_url_list)
+                # Find all unique CVEs in title and summary
+                found_cves = set(re.findall(cve_regex, f"{post_title} {post_summary}", re.IGNORECASE))
 
-                    res += f"\n{post_title}\n"
-                    if post_summary:
-                        res += f" • summary: {clean_html(post_summary)}\n"
-                    if cve_links:
-                        res += f"\n • cve(s): {cve_links}\n"
-                    res += f" • link: {rss_post['link']}\n"
-                    res += f" • md5: {rss_post['md5']}\n"
-                    res += f" • keyword(s): {rss_post.get('keywords', [])}\n"
-                    res += f" • feed: {rss_post.get('rss_feed_name', 'N/A')}\n"
-                    res += f"---EOM---"
+                # Skip the article when every CVE in it has already been seen
+                if found_cves and found_cves.issubset(set(rss_found_already['seen_cves'])):
+                    continue
 
-    return res
+                intel = rss_post.get("intel") or {}
+                per_cve = intel.get("cves", {})
+                cve_url_list = []
+                for cve_id in sorted(found_cves):
+                    addon = ""
+                    if cve_id in rss_found_already["fixed_cves"]:
+                        addon += ":white_check_mark:"
+                    elif cve_id in rss_found_already["seen_cves"]:
+                        addon += ":eyes:"
+                    score = (per_cve.get(cve_id) or {}).get("cvss")
+                    score_txt = f" ({score})" if score is not None else ""
+                    cve_url_list.append(
+                        f"<https://nvd.nist.gov/vuln/detail/{cve_id}|{cve_id}{score_txt} {addon}>")
+
+                body = ""
+                if post_summary:
+                    body += f" • summary: {clean_html(post_summary)}\n"
+                intel_line = _intel_line(intel)
+                if intel_line:
+                    body += f" • severity: {intel_line}\n"
+                if cve_url_list:
+                    body += f"\n • cve(s): {', '.join(cve_url_list)}\n"
+                body += footer
+
+                alarm = bool(rss_post.get("alarm"))
+                if alarm:
+                    label = intel.get("severity") if intel.get("severity") in ("CRITICAL", "HIGH") else "KEV"
+                    headline = f":rotating_light: *{label}*: {post_title}"
+                else:
+                    headline = f"\n{post_title}"
+                items.append({"headline": headline, "body": body, "alarm": alarm})
+
+    return items
 
 
 def send_message(job_type, message_params, matched, errors, check_stale_keywords=None):
@@ -259,11 +299,12 @@ def send_message(job_type, message_params, matched, errors, check_stale_keywords
 
         # --- Post matched articles ---
         rss_found = read_channel(slack_client, channel_id, job_type)
-        message_body = build_results_message(matched, rss_found, job_type)
-        logger.info(f"For job '{job_type}', built message body: '{message_body[:200]}...'")
+        message_items = build_results_message(matched, rss_found, job_type)
+        logger.info(f"For job '{job_type}', {len(message_items)} message(s) to post "
+                    f"({sum(1 for m in message_items if m['alarm'])} alarm)")
         posted_ok = True
-        if message_body:
-            posted_ok = post_message(slack_client, channel_id, message_body)
+        if message_items:
+            posted_ok = post_message(slack_client, channel_id, message_items)
 
         # --- Post errors and warnings to the error channel ---
         if not error_channel_id:

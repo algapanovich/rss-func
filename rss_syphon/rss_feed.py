@@ -9,6 +9,7 @@ import importlib
 from rss_config import slack_params_dict
 from slacker.slacker import send_message
 from rss_syphon.state import get_state
+from rss_syphon.enrich import enrich_articles
 
 import logging
 logger = logging.getLogger(__name__)
@@ -271,6 +272,11 @@ def run_job(job_type):
     matched, feed_errors, date_errors, old_articles = prepare_feed_message(
         processed, patterns, ignore_re, seen=state.is_seen
     )
+    if job_type == "cve":
+        try:
+            enrich_articles(matched["articles"], state)
+        except Exception as e:  # never block posting on enrichment
+            logger.warning(f"Enrichment failed, posting without it: {e}")
     logger.info(f"New matched articles for {job_type}: {len(matched['articles'])}")
     for article in matched["articles"]:
         logger.info(f"  - {article.get('title', 'No Title')}")
