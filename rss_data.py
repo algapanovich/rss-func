@@ -42,7 +42,6 @@ keywords = {
         "falcon sensor",
         "wiz",
         "splunk",
-        "tenable",
         "nessus",
         "hackerone",
         "hacker one",
